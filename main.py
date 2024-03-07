@@ -1,7 +1,7 @@
-from blur import Blur 
+from src.blur import Blur 
 import asyncio
 from os import environ
-from eth_node import EthNode
+from src.eth_node import EthNode
 
 from pymongo import MongoClient
 
@@ -10,9 +10,10 @@ async def main():
 
     q = asyncio.Queue()
     ethNode = EthNode(infuraKey)
+    client = MongoClient('192.168.0.6', 27017).nft 
         
-    asyncio.create_task(Blur(q, ethNode).start())
-    await ethNode.ws_v2_subscription_context_manager_example(q, infuraKey)
+    asyncio.create_task(Blur(q, ethNode, client).start())
+    await ethNode.w2Logs(q, infuraKey)
 
 if __name__ == "__main__":
     asyncio.run(main())

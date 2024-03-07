@@ -1,16 +1,16 @@
 import unittest 
-from blur import Blur 
-from eth_node import EthNode 
+from src.blur import Blur 
+from src.eth_node import EthNode 
 from os import environ
 import asyncio
 from hexbytes import HexBytes
-from trade import TradeType
+from src.trade import TradeType
 
 class TestBlur(unittest.TestCase):
     def setUp(self) -> None:
         infuraKey = environ['INFURAAPIKEY']
         self.ethNode = EthNode(infuraKey)
-        self.blur = Blur(asyncio.Queue(), self.ethNode)
+        self.blur = Blur(asyncio.Queue(), self.ethNode, None)
 
         self.rhb = lambda x : HexBytes(int(x.hex(), 16))
 
@@ -29,8 +29,6 @@ class TestBlur(unittest.TestCase):
         self.assertEqual(result.tradeType, TradeType.MAKER)
         self.assertEqual(self.rhb(result.feeRate), HexBytes(int(0.05 * 10 ** 4)))
         self.assertEqual(result.feeAddress, HexBytes('0xD98D29Beb788fF04e7a648775FcB083282aE9C4B'))
-
-        print(result.getDict())
 
     def test_decode_taker(self):
         txHash = '0x96181900db1bd33db6110ddde7b7834d11e01470e7dec76d34e1fd2e3fc25e0b'

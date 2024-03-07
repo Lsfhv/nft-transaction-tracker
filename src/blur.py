@@ -1,16 +1,16 @@
 import asyncio
-from trade import Trade, TradeType, MarketType
-from eth_node import EthNode
+from src.trade import Trade, TradeType, MarketType
+from src.eth_node import EthNode
 from hexbytes import HexBytes
 from pymongo import MongoClient
 class Blur: 
-    def __init__(self, aq: asyncio.Queue, ethNode: EthNode): 
+    def __init__(self, aq: asyncio.Queue, ethNode: EthNode, client: MongoClient): 
         self.aq = aq 
         self.ethNode = ethNode
         self.txTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
         self.rhb = lambda x : HexBytes(int(x.hex(), 16))
 
-        self.client = MongoClient('192.168.0.6', 27017).nft 
+        self.client = client
     
     def txTopics(self, txHash: str) -> list:
         logs = self.ethNode.getLogs(txHash)
@@ -90,6 +90,6 @@ class Blur:
                 trade = self.decode(message)  
                 self.client.trades.insert_one(trade.getDict())
                 print('------------------------------------------------------------------------------')
-            except:
-                print('Error')
+            except Exception as e:
+                print(e)
 
