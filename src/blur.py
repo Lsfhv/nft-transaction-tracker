@@ -3,18 +3,12 @@ from src.trade import Trade, TradeType, MarketType
 from src.eth_node import EthNode
 from hexbytes import HexBytes
 from pymongo import MongoClient
-class Blur: 
-    def __init__(self, aq: asyncio.Queue, ethNode: EthNode, client: MongoClient): 
-        self.aq = aq 
-        self.ethNode = ethNode
-        self.txTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
-        self.rhb = lambda x : HexBytes(int(x.hex(), 16))
 
-        self.client = client
-    
-    def txTopics(self, txHash: str) -> list:
-        logs = self.ethNode.getLogs(txHash)
-        return [i['topics'] for i in logs if i['topics'][0].hex() == self.txTopic and len(i['topics']) == 4]
+from src.marketplace import Marketplace
+
+class Blur(Marketplace): 
+    def __init__(self, aq: asyncio.Queue, ethNode: EthNode, client: MongoClient): 
+        super().__init__(aq, ethNode, client)
     
     def decode(self,message: dict) -> Trade:
 
@@ -43,26 +37,13 @@ class Blur:
                     fee, 
                     side]
         
-        def hbEq(hb1: HexBytes, hb2: HexBytes) -> bool:
-            return self.rhb(hb1) == self.rhb(hb2)
-        
-        def findDest(txTopics: list, trader: HexBytes, tokenId: HexBytes, side: HexBytes) -> HexBytes:
-
-            src, dest = 1,2 
-            if side == HexBytes(1): 
-                src, dest = dest, src
-
-            txTopics = [
-                i for i in txTopics if hbEq(i[3], tokenId) and hbEq(i[src], trader)]
-            return self.rhb(txTopics[0][dest])
-        
         txHash = message['transactionHash']
-        print(txHash.hex())
+        # print(f"txHash: {txHash.hex()}")
         txTopics = self.txTopics(txHash)
 
         trader, tokenId, colAdd, price, feeAdd, fee, side = splitData(message['data'])    
 
-        dest = findDest(txTopics, trader, tokenId, side)
+        dest = self.findDest(txTopics, trader, tokenId, side)
 
         if side == HexBytes(1):
             trader,dest = dest,trader
@@ -81,15 +62,4 @@ class Blur:
             MarketType.BLUR
         )
 
-    
-    async def start(self) -> None:
-        while True: 
-            message = await self.aq.get()
-            try:
-                print('------------------------------------------------------------------------------')
-                trade = self.decode(message)  
-                self.client.trades.insert_one(trade.getDict())
-                print('------------------------------------------------------------------------------')
-            except Exception as e:
-                print(e)
 
