@@ -4,6 +4,7 @@ import asyncio
 from src.eth_node import EthNode
 from pymongo import MongoClient
 from hexbytes import HexBytes
+import queue 
 
 class Marketplace(ABC):
 
@@ -14,6 +15,7 @@ class Marketplace(ABC):
         self.rhb = lambda x : HexBytes(int(x.hex(), 16))
 
         self.client = client
+        self.buffer = queue.Queue() 
     
     def txTopics(self, txHash: str) -> list:
         logs = self.ethNode.getLogs(txHash)
@@ -43,11 +45,26 @@ class Marketplace(ABC):
         while True: 
             message = await self.aq.get()
             try:
-                print('------------------------------------------------------------------------------')
-                trade = self.decode(message)  
-                print(trade.getDict())
-                self.client.trades.insert_one(trade.getDict())
-                print('------------------------------------------------------------------------------')
+                trade = self.decode(message)
+                try:
+                    self.client.trades.insert_one(trade.getDict())
+                    while not self.buffer.empty():
+                        trade = self.buffer.queue[0]
+                        self.client.trades.insert_one(trade) 
+                        self.buffer.get()
+                except:
+                    self.buffer.put(trade.getDict())
+                    # print(f"Buffered, bring DB back I run out of memory!! : {self.buffer.qsize()}")
             except Exception as e:
+                print(e)  
+                
 
-                print(e)
+            # try:
+            #     print('------------------------------------------------------------------------------')
+            #     trade = self.decode(message)  
+            #     print(trade.getDict())
+            #     self.client.trades.insert_one(trade.getDict())
+            #     print('------------------------------------------------------------------------------')
+            # except Exception as e:
+
+            #     print(e)
