@@ -54,17 +54,6 @@ class Marketplace(ABC):
                         self.buffer.get()
                 except:
                     self.buffer.put(trade.getDict())
-                    # print(f"Buffered, bring DB back I run out of memory!! : {self.buffer.qsize()}")
+                    print(f"Buffered, bring DB back before I run out of memory!! : {self.buffer.qsize()}")
             except Exception as e:
                 print(e)  
-                
-
-            # try:
-            #     print('------------------------------------------------------------------------------')
-            #     trade = self.decode(message)  
-            #     print(trade.getDict())
-            #     self.client.trades.insert_one(trade.getDict())
-            #     print('------------------------------------------------------------------------------')
-            # except Exception as e:
-
-            #     print(e)
