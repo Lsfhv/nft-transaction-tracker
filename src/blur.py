@@ -38,7 +38,6 @@ class Blur(Marketplace):
                     side]
         
         txHash = message['transactionHash']
-        # print(f"txHash: {txHash.hex()}")
         txTopics = self.txTopics(txHash)
 
         trader, tokenId, colAdd, price, feeAdd, fee, side = splitData(message['data'])    

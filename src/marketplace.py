@@ -16,6 +16,7 @@ class Marketplace(ABC):
 
         self.client = client
         self.buffer = queue.Queue() 
+        self.messageBuffer = queue.Queue()
     
     def txTopics(self, txHash: str) -> list:
         logs = self.ethNode.getLogs(txHash)
@@ -40,20 +41,34 @@ class Marketplace(ABC):
         txTopics = [
             i for i in txTopics if self.hbEq(i[3], tokenId) and self.hbEq(i[src], trader)]
         return self.padAddress(self.rhb(txTopics[0][dest]))
+    
+    def dbInsert(self, trade: Trade) -> None:
+        self.client.trades.insert_one(trade.getDict())
 
+    def clearBuffer(self) -> None: 
+        while not self.buffer.empty():
+            trade = self.buffer.queue[0]
+            self.dbInsert(trade)
+            self.buffer.get()
+
+    # Put the messages back into the queue
+    async def clearMessageBuffer(self) -> None:
+        while not self.messageBuffer.empty():
+            await self.aq.put(self.messageBuffer.get())
+            
     async def start(self) -> None:
         while True: 
             message = await self.aq.get()
             try:
                 trade = self.decode(message)
+                
+                await self.clearMessageBuffer()
                 try:
-                    self.client.trades.insert_one(trade.getDict())
-                    while not self.buffer.empty():
-                        trade = self.buffer.queue[0]
-                        self.client.trades.insert_one(trade) 
-                        self.buffer.get()
+                    self.dbInsert(trade)
+                    self.clearBuffer()
                 except:
-                    self.buffer.put(trade.getDict())
+                    self.buffer.put(trade)
                     print(f"Buffered, bring DB back before I run out of memory!! : {self.buffer.qsize()}")
             except Exception as e:
-                print(e)  
+                self.messageBuffer.put(message)
+                print(e) 
