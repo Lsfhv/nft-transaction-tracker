@@ -1,20 +1,27 @@
 import unittest 
-from blur import Blur 
-from eth_node import EthNode 
+from src.blur import Blur 
+from src.eth_node import EthNode 
 from os import environ
 import asyncio
 from hexbytes import HexBytes
-from trade import TradeType
+from src.trade import TradeType
 
 class TestBlur(unittest.TestCase):
     def setUp(self) -> None:
         infuraKey = environ['INFURAAPIKEY']
         self.ethNode = EthNode(infuraKey)
-        self.blur = Blur(asyncio.Queue(), self.ethNode)
+        self.blur = Blur(asyncio.Queue(), self.ethNode, None)
 
         self.rhb = lambda x : HexBytes(int(x.hex(), 16))
 
+        self.addressLength = 42
 
+    def asrtAddLen(self, result):
+        self.assertEqual(len(result.source.hex()), self.addressLength)
+        self.assertEqual(len(result.destination.hex()), self.addressLength)
+        self.assertEqual(len(result.collectionAddress.hex()), self.addressLength)
+        self.assertEqual(len(result.feeAddress.hex()), self.addressLength)
+        
     def test_decode_maker(self):
         txHash = '0x9528067c2fb6b9e3cf4a851c99db0a91ccd537526d40f8c2c226adeba5a084aa'
         log = self.ethNode.getLogs(txHash)[-1]
@@ -30,7 +37,7 @@ class TestBlur(unittest.TestCase):
         self.assertEqual(self.rhb(result.feeRate), HexBytes(int(0.05 * 10 ** 4)))
         self.assertEqual(result.feeAddress, HexBytes('0xD98D29Beb788fF04e7a648775FcB083282aE9C4B'))
 
-        print(result.getDict())
+        self.asrtAddLen(result)
 
     def test_decode_taker(self):
         txHash = '0x96181900db1bd33db6110ddde7b7834d11e01470e7dec76d34e1fd2e3fc25e0b'
@@ -47,4 +54,17 @@ class TestBlur(unittest.TestCase):
         self.assertEqual(result.feeAddress, HexBytes('0x9906de9e0d9ef5960d02df2261ecaa78ec8ce45d'))
         self.assertEqual(result.tradeType, TradeType.TAKER)
 
+        self.asrtAddLen(result)
+
+    def test_decode_taker_padded_zero(self):
+        txHash = '0x1d6c29ac06fb3f0a6ffd7dd580726d64bbddffdc6dfd95fdce4f60a10140c812'
+        log = self.ethNode.getLogs(txHash)[4]
+        result = self.blur.decode(log)
+
+        self.assertEqual(result.source, HexBytes('0x00652700cb56bd11a52fcfb5709f89b70a445208'))
+        self.assertEqual(result.destination, HexBytes('0x1e2ab2c1ee48aa5c705e6a638087bf7fc1877095'))
+
+        self.asrtAddLen(result)
+
 # python3 -m unittest discover test '*.py' 
+        
