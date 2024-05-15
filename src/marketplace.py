@@ -5,6 +5,8 @@ from src.eth_node import EthNode
 from pymongo import MongoClient
 from hexbytes import HexBytes
 import queue 
+from web3 import Web3 
+import logging
 
 class Marketplace(ABC):
 
@@ -61,14 +63,16 @@ class Marketplace(ABC):
             message = await self.aq.get()
             try:
                 trade = self.decode(message)
+
+                # print(trade.txHash.hex())
                 
                 await self.clearMessageBuffer()
                 try:
                     self.dbInsert(trade)
                     self.clearBuffer()
-                except:
+                except Exception as e:
                     self.buffer.put(trade)
-                    print(f"Buffered, bring DB back before I run out of memory!! : {self.buffer.qsize()}")
+                    print(f"No DB, stored in memory: {self.buffer.qsize()}")
             except Exception as e:
                 self.messageBuffer.put(message)
-                print(e) 
+

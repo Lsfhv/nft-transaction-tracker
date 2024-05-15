@@ -4,6 +4,10 @@ import asyncio
 from datetime import datetime
 from hexbytes import HexBytes
 import json 
+
+MAGICEDEN = '0x9A1D00bEd7CD04BCDA516d721A596eb22Aac6834'
+AcceptOfferERC721 = '0x8b87c0b049fe52718fe6ff466b514c5a93c405fb0de8fbd761a23483f9f9e198'
+
 class EthNode:
     def __init__(self, key: str): 
         self.w3 = Web3(Web3.HTTPProvider(f"https://mainnet.infura.io/v3/{key}"))    
@@ -25,9 +29,9 @@ class EthNode:
     def getLogs(self, txHash: str | HexBytes) -> list:
         return self.w3.eth.get_transaction_receipt(txHash)['logs']
     
-    def decodeOSlog(self, log: dict) -> dict:
-        data = self.contract.events.OrderFulfilled().process_log(log)['args']
-        return {k: v for k,v in data.items()}
+    # def decodeOSlog(self, log: dict) -> dict:
+    #     data = self.contract.events.OrderFulfilled().process_log(log)['args']
+    #     return {k: v for k,v in data.items()}
     
     async def w2Logs(self, marketplaces, key: str):
         async with AsyncWeb3.persistent_websocket(
@@ -46,20 +50,26 @@ class EthNode:
                 "topics": [self.takerT]
                 }) 
             
-            # orderfulfilled = await w3.eth.subscribe("logs", {
-            #     "address": '0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC', 
-            #     "topics": ['0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31']
+            orderfulfilled = await w3.eth.subscribe("logs", {
+                "address": '0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC', 
+                "topics": ['0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31']
+            })
+
+            # magice eden 
+            # magicEdenAcceptErc721 = await w3.eth.subscribe("logs", {
+            #     "address": MAGICEDEN, 
+            #     "topics": [AcceptOfferERC721]
             # })
             
             submap[makersub] = marketplaces[0] 
             submap[takersub] = marketplaces[0]
 
-            # submap[orderfulfilled] = marketplaces[1]
+            # submap[magicEdenAcceptErc721] = marketplaces[2]
+
+            submap[orderfulfilled] = marketplaces[1]
                         
             async for response in w3.ws.process_subscriptions():
-                # print(response)
                 sub = response['subscription']
                 await submap[sub].aq.put(response['result'])
-                # await q.put(response['result'])
 
     
