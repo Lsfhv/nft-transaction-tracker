@@ -8,8 +8,8 @@ import json
 from src.constants import WETH
 class Opensea(Marketplace):
 
-    def __init__(self, aq: asyncio.Queue, ethNode: EthNode, client: MongoClient):
-        super().__init__(aq, ethNode, client)   
+    def __init__(self, aq: asyncio.Queue, eth_node: EthNode, client: MongoClient):
+        super().__init__(aq, eth_node, client)
         with open('src/abi/openseaABI.json') as f:
             abi = json.load(f)
         self.contract = self.ethNode.w3.eth.contract(abi = abi)

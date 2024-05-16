@@ -8,8 +8,8 @@ from hexbytes import HexBytes
 
 class MagicEden(Marketplace):
 
-    def __init__(self, aq: asyncio.Queue, ethNode: EthNode, client: MongoClient):
-        super().__init__(aq, ethNode, client)
+    def __init__(self, aq: asyncio.Queue, eth_node: EthNode, client: MongoClient):
+        super().__init__(aq, eth_node, client)
 
         with open('src/abi/magicedenABI.json') as f:
             abi = json.load(f)
