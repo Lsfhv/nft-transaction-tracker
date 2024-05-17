@@ -1,173 +1,88 @@
-import unittest 
+import unittest
 from src.marketplace import Marketplace
 from hexbytes import HexBytes
 import mongomock
 import asyncio
 from os import environ
 from src.eth_node import EthNode
-from src.blur import Blur 
+from src.blur import Blur
 import pymongo
+import logging
+from test_data import BLUR_MAKER_MSG, SLEEP, TX_HASH, ADD_LEN, TX_HASH_W_LOTS_LOGS
+from src.constants import Side
+
 
 class TestMarketplace(unittest.TestCase):
     def setUp(self):
-
         class TempMarketplace(Marketplace):
             def decode(self, message: dict):
                 pass
-        infuraKey = environ['INFURAAPIKEY']
-        self.ethNode = EthNode(infuraKey)
-        self.mock_client = mongomock.MongoClient().nft
-        self.marketplace = TempMarketplace(asyncio.Queue(), self.ethNode, self.mock_client)
-        self.bad_client = pymongo.MongoClient(serverSelectionTimeoutMS=1000).nft 
-        self.blurTx = '0x3976f2657aca7b7f99e2345418cb4a9abc6792a157cb09b9ad3206c846dec459'
 
-        self.SLEEP = 0.1 # sleep to let the coroutine to switch to handle buffer
+        logging.getLogger().setLevel(logging.CRITICAL)  
+        infura_key = environ["INFURAAPIKEY"]
+        self.ethNode = EthNode(infura_key)
+        self.mockClient = mongomock.MongoClient().nft
+        self.marketplace = TempMarketplace(asyncio.Queue(), self.ethNode, self.mockClient)
+        self.badMockClient = pymongo.MongoClient(host='192', serverSelectionTimeoutMS=1000).nft
 
-    def test_padAddress(self):
-        self.assertEqual(self.marketplace.padAddress(HexBytes('0x1')), HexBytes('0x' + '0' * 39 + '1'))
+        self.src_dst_input_1 = {
+            'trader': HexBytes('0xd0bc13738D982F06399844480990a5Cf59B51867'), 
+            'token_id': HexBytes(4097), 
+            'side': Side.SELL
+        }
 
-    def test_insert_log(self):
-        log = self.ethNode.getLogs(self.blurTx)[-1]
-        blur = Blur(asyncio.Queue(), self.ethNode, self.mock_client)
-        async def test():
-            asyncio.create_task(blur.start())
-            await blur.aq.put(log)
-            await asyncio.sleep(self.SLEEP)
-
-            trades = blur.client.trades.find()
-            self.assertEqual(len(list(trades)), 1)
-        asyncio.run(test())
-
-    def test_messageBufferWithPermTradeIn(self):
-        badtx = HexBytes('0x3976f2657aca7b7f99e2345418cb4a9abc6792a157cb09b9ad3206c846dec458')
-        goodtx = HexBytes('0x3976f2657aca7b7f99e2345418cb4a9abc6792a157cb09b9ad3206c846dec459')
-        blur = Blur(asyncio.Queue(), self.ethNode, self.mock_client)
-
-        goodLog = dict(self.ethNode.getLogs(self.blurTx)[-1])
-        goodLog['transactionHash'] = goodtx
-
-        badLog = dict(self.ethNode.getLogs(self.blurTx)[-1])
-        badLog['transactionHash'] = badtx
-
-        async def test():
-            asyncio.create_task(blur.start())
-            await blur.aq.put(badLog)
-
-            await asyncio.sleep(self.SLEEP)
-
-            self.assertEqual(blur.messageBuffer.qsize(), 1)
-
-            await blur.aq.put(goodLog)
-
-            await asyncio.sleep(self.SLEEP)
-
-            self.assertEqual(blur.messageBuffer.qsize(), 1)
-
-            trades = blur.client.trades.find()
-            self.assertEqual(len(list(trades)), 1)
-
-            await blur.clearMessageBuffer()
-
-            await asyncio.sleep(self.SLEEP)
-
-            self.assertEqual(blur.messageBuffer.qsize(), 1)
+        self.src_dst_input_2 = {
+            'trader': HexBytes('0x3c671b2949201ef605ecdc647339ccE9Df962F69'),
+            'side': Side.SELL
+        }
 
 
-        asyncio.run(test())
+    def test_find_destination(self):
+        src_dst = self.marketplace.get_src_dst(TX_HASH, self.src_dst_input_1['trader'], self.src_dst_input_1['token_id'], self.src_dst_input_1['side'])
+        
+        self.assertEqual(src_dst['src'], HexBytes('0x4Bb00e207989cFaCA6b9A767DE146FAc2a1104B4'))
+        self.assertEqual(src_dst['dst'], HexBytes('0xd0bc13738D982F06399844480990a5Cf59B51867'))    
 
-    def test_messageBuffer(self):
-        badtx = HexBytes('0x3976f2657aca7b7f99e2345418cb4a9abc6792a157cb09b9ad3206c846dec458')
-        goodtx = HexBytes('0x3976f2657aca7b7f99e2345418cb4a9abc6792a157cb09b9ad3206c846dec459')
-        blur = Blur(asyncio.Queue(), self.ethNode, self.mock_client)
+        self.assertEqual(len(src_dst['src'].hex()), ADD_LEN, f'Source address should be {ADD_LEN} characters long')
+        self.assertEqual(len(src_dst['dst'].hex()), ADD_LEN, f'Destination address should be {ADD_LEN} characters long')
 
-        goodLog = dict(self.ethNode.getLogs(self.blurTx)[-1])
-        goodLog['transactionHash'] = goodtx
+        # with multiple tx logs
 
-        badLog = dict(self.ethNode.getLogs(self.blurTx)[-1])
-        badLog['transactionHash'] = badtx
+        src_dst = self.marketplace.get_src_dst(TX_HASH_W_LOTS_LOGS, self.src_dst_input_2['trader'], HexBytes(8224) , self.src_dst_input_2['side'])
+        self.assertEqual(src_dst['src'], HexBytes('0xA3b3ACF61034cCD05f204e24E5935ceA4d291065'))
+        self.assertEqual(src_dst['dst'], HexBytes('0x3c671b2949201ef605ecdc647339ccE9Df962F69'))
 
-        async def test():
-            asyncio.create_task(blur.start())
-            await blur.aq.put(badLog)
 
-            await asyncio.sleep(self.SLEEP)
+    def test_tx_topics(self):
+        tx_logs = self.marketplace.tx_logs(TX_HASH)
+        self.assertEqual(len(tx_logs), 1)
 
-            self.assertEqual(blur.messageBuffer.qsize(), 1)
+        tx_logs = self.marketplace.tx_logs(TX_HASH_W_LOTS_LOGS)
+        self.assertEqual(len(tx_logs), 5)
+        
 
-            blur.messageBuffer.queue[0]['transactionHash'] = goodtx
-
-            await blur.aq.put(goodLog)
-
-            await asyncio.sleep(self.SLEEP)
-
-            self.assertEqual(blur.messageBuffer.qsize(), 0)
-
-            trades = blur.client.trades.find()
-            self.assertEqual(len(list(trades)), 2)
-
-        asyncio.run(test())
-
-    def test_clearMessageBuffer(self):
-        log = self.ethNode.getLogs(self.blurTx)[-1]
-        blur = Blur(asyncio.Queue(), self.ethNode, self.mock_client)
-        log = dict(log)
-        log['transactionHash'] = HexBytes('0x3976f2656aca7b7f99e2345418cb4a9abc6792a157cb09b9ad3206c846dec458')
-
-        good = HexBytes('0x3976f2657aca7b7f99e2345418cb4a9abc6792a157cb09b9ad3206c846dec459')
-
-        async def test():
-            asyncio.create_task(blur.start())
-            await blur.aq.put(log)
-
-            await asyncio.sleep(self.SLEEP)
-
-            self.assertEqual(blur.messageBuffer.qsize(), 1)
-            self.assertEqual(blur.messageBuffer.queue[0], log)
-
-            await blur.clearMessageBuffer()
-
-            await asyncio.sleep(self.SLEEP)
-
-            self.assertEqual(blur.messageBuffer.qsize(), 1)
-            self.assertEqual(blur.messageBuffer.queue[0], log)
-
-            blur.messageBuffer.queue[0]['transactionHash'] = good
-
-            await blur.clearMessageBuffer()
-
-            await asyncio.sleep(self.SLEEP)
-
-            self.assertEqual(blur.messageBuffer.qsize(), 0)
-            
-            trades = blur.client.trades.find()
-            self.assertEqual(len(list(trades)), 1)
-        asyncio.run(test())
-
-    # Test the buffer in the marketplace
     def test_buffer(self):
-        log = self.ethNode.getLogs(self.blurTx)[-1]
-
-        blur = Blur(asyncio.Queue(), self.ethNode, self.bad_client)
+        blur = Blur(asyncio.Queue(), self.ethNode, self.badMockClient)
 
         async def test():
             asyncio.create_task(blur.start())
-            await blur.aq.put(log)
-            await asyncio.sleep(self.SLEEP)
+            await blur.aq.put(BLUR_MAKER_MSG)
+            await asyncio.sleep(SLEEP)
             self.assertEqual(blur.buffer.qsize(), 1)
 
-            await blur.aq.put(log)
-            await asyncio.sleep(self.SLEEP)
+            await blur.aq.put(BLUR_MAKER_MSG)
+            await asyncio.sleep(SLEEP)
             self.assertEqual(blur.buffer.qsize(), 2)
 
-            await blur.aq.put(log)
-            await asyncio.sleep(self.SLEEP)
+            await blur.aq.put(BLUR_MAKER_MSG)
+            await asyncio.sleep(SLEEP)
             self.assertEqual(blur.buffer.qsize(), 3)
 
-            # switch to good client
-            blur.client = self.mock_client 
+            # switch to good client, should clear the buffer after getting a new msg
+            blur.client = self.mockClient
 
-            await blur.aq.put(log)
-            await asyncio.sleep(self.SLEEP)
+            await blur.aq.put(BLUR_MAKER_MSG)
+            await asyncio.sleep(SLEEP)
             self.assertEqual(blur.buffer.qsize(), 0)
 
             # 4 items in the database

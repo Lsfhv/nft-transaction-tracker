@@ -1,0 +1,80 @@
+from hexbytes import HexBytes
+from datetime import datetime 
+from src.constants import MarketType, Side, infura_key
+from src.trade import Trade
+from src.magiceden import MagicEden
+from asyncio import Queue
+from src.eth_node import EthNode
+
+ETH_NODE = EthNode(infura_key)  
+
+TX_HASH = '0x3f61ce351938a9f67acbaa41d42e3212d5895e94639e56870e909c99cacf7fa6'
+TX_HASH_W_LOTS_LOGS = '0x682dcf4f1794fd19b7690dac24946a6aae4bcc6e495769adf0cfb3ee7927abce'
+ADD_LEN = 42
+
+SLEEP = 0.1
+
+TEST_MAGICEDEN = MagicEden(Queue(), ETH_NODE, None)
+
+MAGICEDEN_BUY_MSG = {'address': '0x9a1d00bed7cd04bcda516d721a596eb22aac6834', 'blockHash': '0xfe4ba668ad5d83045cf339d6a7c631a0e9967570db2868f69348abcd0dfc2c77', 'blockNumber': '0x12f7c19', 'data': '0x00000000000000000000000067dda6b2d5f65e9948df89ed9dfe99ecaee96f6700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d510000000000000000000000000000000000000000000000001c7310237d8d0000', 'logIndex': '0x53', 'removed': False, 'topics': ['0xffb29e9cf48456d56b6d414855b66a7ec060ce2054dcb124a1876310e1b7355c', '0x00000000000000000000000067dda6b2d5f65e9948df89ed9dfe99ecaee96f67', '0x0000000000000000000000005d3f81ad171616571bf3119a3120e392b914fd7c', '0x0000000000000000000000008821bee2ba0df28761afff119d66390d594cd280'], 'transactionHash': '0xca47e2e33fdbc54dfc4d294c5c1ecc83d94ff4e1a659b49fe11f7b80d1b370c3', 'transactionIndex': '0x36'}
+MAGICEDEN_SELL_MSG = {'address': '0x9a1d00bed7cd04bcda516d721a596eb22aac6834', 'blockHash': '0x184dd1531163700c1d489e47e27e9060abaedff657070cd5e1823b121ab4b1bb', 'blockNumber': '0x12f7c07', 'data': '0x000000000000000000000000db0f95806885c2e6b048d2ee62918fcd852c0fcb000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2000000000000000000000000000000000000000000000000000000000000361400000000000000000000000000000000000000000000000001aa535d3d0c0000', 'logIndex': '0x6a', 'removed': False, 'topics': ['0x8b87c0b049fe52718fe6ff466b514c5a93c405fb0de8fbd761a23483f9f9e198', '0x0000000000000000000000009665937c67443bb321ceee7a17af908027066b6e', '0x000000000000000000000000db0f95806885c2e6b048d2ee62918fcd852c0fcb', '0x00000000000000000000000056e6f1bffde5dccd9a183585ce31f2902fc52707'], 'transactionHash': '0xbeebd95af01115e2fc4de9430ed85d44b9af1c349c0b92aaff682282b94c66b2', 'transactionIndex': '0x34'}
+MAGICEDEN_BUY_TRADE = Trade(
+    '0xca47e2e33fdbc54dfc4d294c5c1ecc83d94ff4e1a659b49fe11f7b80d1b370c3',
+    HexBytes('0x5d3f81Ad171616571BF3119a3120E392B914Fd7C'),
+    HexBytes('0x67DdA6B2d5f65e9948Df89eD9DfE99EcaEE96F67'),
+    HexBytes(3409), 
+    HexBytes('0x8821BeE2ba0dF28761AffF119D66390D594CD280'),
+    HexBytes(2050000000000000000),
+    0,
+    HexBytes(0),
+    Side.BUY,
+    datetime(2024, 5, 17, 10, 44, 59),
+    MarketType.MAGICEDEN
+)
+MAGICEDEN_SELL_TRADE = Trade(
+    '0xbeebd95af01115e2fc4de9430ed85d44b9af1c349c0b92aaff682282b94c66b2',
+    HexBytes('0x9665937c67443Bb321ceEE7A17AF908027066b6E'), 
+    HexBytes('0xdb0f95806885c2e6B048D2eE62918fcD852C0fCb'),
+    HexBytes(13844), 
+    HexBytes('0x56e6F1BFFde5DCcd9A183585cE31f2902FC52707'), 
+    HexBytes(120000000000000000),
+    0,
+    HexBytes(0),
+    Side.SELL,
+    datetime(2024, 5, 17, 10, 41, 23),
+    MarketType.MAGICEDEN
+)
+
+
+BLUR_MAKER_MSG = {'address': '0xb2ecfe4e4d61f8790bbb9de2d1259b9e2410cea5', 'blockHash': '0x137c3588e2d240cb255a0e83e3fff87a6ee50e939b553395055968ab01502c5c', 'blockNumber': '0x12f61a0', 'data': '0x28cfe965d7c7d8be78f88ea85bffe214611fe7d35b4d9ae1a52177a3512eb4db00000000000000000f429d00d2e80d60aff5377587e49ff32c9bad639d6f68bc000000000453068c90030000f9e39ce3463b8def5748ff9b8f7825af8f1b1617000000000000000000000032bb70ccc326bb0c98487cc4e281a4d7b9e1624baa', 'logIndex': '0x172', 'removed': False, 'topics': ['0x7dc5c0699ac8dd5250cbe368a2fc3b4a2daadb120ad07f6cccea29f83482686e'], 'transactionHash': '0x8cf2b6d5adb5d11fb6a9b773d524b6a40ac27d69d03dffbeba17c21b48da2466', 'transactionIndex': '0x86'}
+
+BLUR_MAKER_TRADE = Trade(
+            '0x8cf2b6d5adb5d11fb6a9b773d524b6a40ac27d69d03dffbeba17c21b48da2466',
+            HexBytes('0xd2e80D60aff5377587E49FF32c9bad639d6f68Bc'), 
+            HexBytes('0x6Ce922B3d81BA1e1bDD58003AD148552000a0bfA'),
+            HexBytes(1000093),
+            HexBytes('0xf9e39ce3463B8dEF5748Ff9B8F7825aF8F1b1617'),
+            HexBytes(311600000000000000),
+            0.005, 
+            HexBytes('0xBB70CcC326BB0C98487cc4E281A4D7b9e1624bAA'),
+            Side.BUY,
+            datetime(2024, 5, 16, 12, 0, 47), 
+            MarketType.BLUR
+        )
+
+BLUR_TAKER_MSG = {'address': '0xb2ecfe4e4d61f8790bbb9de2d1259b9e2410cea5', 'blockHash': '0x28fa01ee0e247d590f4b1329399812d68a10976ed10782cc276c9b05c660b204', 'blockNumber': '0x12f65eb', 'data': '0xac96d4c120e5531f660848883aeae29bc70f7f4f4b6550a4cdf5af7be928bac1000000000000000000055900d2205aa882e005066b32764cf6748bd07bdcf78801000000016345785d8a00008fc0d90f2c45a5e7f94904075c952e0943cfccfd000000000000000000000032e68acb8a71dba532c88b8772542b5e97ce0a5001', 'logIndex': '0x2c0', 'removed': False, 'topics': ['0x0fcf17fac114131b10f37b183c6a60f905911e52802caeeb3e6ea210398b81ab'], 'transactionHash': '0x762dcd0d964512e5a44ccf0c8a8edb992af239b41549e18b4ddad32a8d647c4b', 'transactionIndex': '0xdd'}
+
+BLUR_TAKER_TRADE = Trade(
+            '0x762dcd0d964512e5a44ccf0c8a8edb992af239b41549e18b4ddad32a8d647c4b', 
+            HexBytes('0xbb6712A513C2d7F3E17A40d095a773c5d98574B2'), 
+            HexBytes('0xd2205AA882e005066B32764CF6748bD07BDCF788'), 
+            HexBytes(1369), 
+            HexBytes('0x8Fc0D90f2C45a5e7f94904075c952e0943CFCCfd'),
+            HexBytes(100000000000000000), 
+            0.005, 
+            HexBytes('0xE68ACB8A71dba532c88b8772542b5e97cE0a5001'),
+            Side.SELL,
+            datetime(2024, 5, 16, 15, 41, 35),
+            MarketType.BLUR
+        )
+
