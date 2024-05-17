@@ -4,7 +4,7 @@ import asyncio
 from src.eth_node import EthNode
 from src.opensea import Opensea
 from hexbytes import HexBytes
-from src.trade import TradeType, MarketType
+# from src.trade import TradeType, MarketType
 
 
 # class TestOpensea(unittest.TestCase):

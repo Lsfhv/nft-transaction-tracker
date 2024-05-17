@@ -11,11 +11,15 @@ blur_maker_topic = '0x7dc5c0699ac8dd5250cbe368a2fc3b4a2daadb120ad07f6cccea29f834
 infura_key = os.environ["INFURAAPIKEY"] 
 infura_ws_endpoint = f"wss://mainnet.infura.io/ws/v3/{infura_key}"
 
+MAGICEDEN_CONTRACT_ADDRESS = '0x9A1D00bEd7CD04BCDA516d721A596eb22Aac6834'
+MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC = '0x8b87c0b049fe52718fe6ff466b514c5a93c405fb0de8fbd761a23483f9f9e198'
+MAGICEDEN_BUY_LISTING_ERC721_TOPIC = '0xffb29e9cf48456d56b6d414855b66a7ec060ce2054dcb124a1876310e1b7355c'
+
 class MarketType(Enum):
     OPENSEA = "OPENSEA"
     BLUR = "BLUR"
     MAGICEDEN = "MAGICEDEN"
 
 class Side(Enum):
-    MAKER = 0
-    TAKER = 1
+    BUY = 0 # Someone bought a listing
+    SELL = 1 # Someone accepted a bid

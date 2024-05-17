@@ -3,12 +3,7 @@ from src.blur import Blur
 from src.eth_node import EthNode 
 from os import environ
 import asyncio
-from hexbytes import HexBytes
-from src.trade import TradeType, Trade
-from datetime import datetime
-from src.constants import MarketType
 from test_data import BLUR_MAKER_MSG, BLUR_TAKER_MSG, BLUR_MAKER_TRADE, BLUR_TAKER_TRADE
-import pprint
 
 class TestBlur(unittest.TestCase):
     def setUp(self) -> None:

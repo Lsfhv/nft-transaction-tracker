@@ -8,7 +8,7 @@ from src.eth_node import EthNode
 from src.blur import Blur
 import pymongo
 import logging
-from test_data import BLUR_MAKER_MSG, SLEEP, TX_HASH, ADD_LEN
+from test_data import BLUR_MAKER_MSG, SLEEP, TX_HASH, ADD_LEN, TX_HASH_W_LOTS_LOGS
 from src.constants import Side
 
 
@@ -28,8 +28,14 @@ class TestMarketplace(unittest.TestCase):
         self.src_dst_input_1 = {
             'trader': HexBytes('0xd0bc13738D982F06399844480990a5Cf59B51867'), 
             'token_id': HexBytes(4097), 
-            'side': Side.TAKER
+            'side': Side.SELL
         }
+
+        self.src_dst_input_2 = {
+            'trader': HexBytes('0x3c671b2949201ef605ecdc647339ccE9Df962F69'),
+            'side': Side.SELL
+        }
+
 
     def test_find_destination(self):
         src_dst = self.marketplace.get_src_dst(TX_HASH, self.src_dst_input_1['trader'], self.src_dst_input_1['token_id'], self.src_dst_input_1['side'])
@@ -42,11 +48,18 @@ class TestMarketplace(unittest.TestCase):
 
         # with multiple tx logs
 
+        src_dst = self.marketplace.get_src_dst(TX_HASH_W_LOTS_LOGS, self.src_dst_input_2['trader'], HexBytes(8224) , self.src_dst_input_2['side'])
+        self.assertEqual(src_dst['src'], HexBytes('0xA3b3ACF61034cCD05f204e24E5935ceA4d291065'))
+        self.assertEqual(src_dst['dst'], HexBytes('0x3c671b2949201ef605ecdc647339ccE9Df962F69'))
 
 
     def test_tx_topics(self):
         tx_logs = self.marketplace.tx_logs(TX_HASH)
         self.assertEqual(len(tx_logs), 1)
+
+        tx_logs = self.marketplace.tx_logs(TX_HASH_W_LOTS_LOGS)
+        self.assertEqual(len(tx_logs), 5)
+        
 
     def test_buffer(self):
         blur = Blur(asyncio.Queue(), self.ethNode, self.badMockClient)

@@ -1,10 +1,16 @@
 from src.marketplace import Marketplace
-from src.trade import Trade, TradeType, MarketType
+from src.trade import Trade
 import asyncio 
 from src.eth_node import EthNode 
 from pymongo import MongoClient
 import json
 from hexbytes import HexBytes
+from src.constants import (
+    Side, 
+    MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC, 
+    MAGICEDEN_BUY_LISTING_ERC721_TOPIC,
+    MarketType
+)
 
 class MagicEden(Marketplace):
 
@@ -13,24 +19,23 @@ class MagicEden(Marketplace):
 
         with open('src/abi/magicedenABI.json') as f:
             abi = json.load(f)
+        
         self.contract = self.ethNode.w3.eth.contract(abi = abi)
 
         self.getEvent = {
-            HexBytes('0x8b87c0b049fe52718fe6ff466b514c5a93c405fb0de8fbd761a23483f9f9e198'): self.contract.events.AcceptOfferERC721(), 
-            HexBytes('0xffb29e9cf48456d56b6d414855b66a7ec060ce2054dcb124a1876310e1b7355c'): self.contract.events.BuyListingERC721()
+            MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC: self.contract.events.AcceptOfferERC721(), 
+            MAGICEDEN_BUY_LISTING_ERC721_TOPIC: self.contract.events.BuyListingERC721()
         }
 
-    def side(self, topic: str) -> TradeType:
-        if topic == '0x8b87c0b049fe52718fe6ff466b514c5a93c405fb0de8fbd761a23483f9f9e198':
-            return TradeType.TAKER
-        else:
-            return TradeType.MAKER
+    def get_side(self, topic: str) -> Side:
+        return Side.SELL if topic == MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC else Side.BUY
 
     def decode(self, message: dict) -> Trade:
-        topic = message['topics'][0]    
+        message = self.transform_msg(message)
+        topic = message['topics'][0].hex()
         event = self.getEvent[topic]
         decoded = event.process_log(message)
-    
+        
         return Trade(
             decoded['transactionHash'],
             HexBytes(decoded['args']['seller']),
@@ -38,11 +43,9 @@ class MagicEden(Marketplace):
             HexBytes(decoded['args']['tokenId']),
             HexBytes(decoded['args']['tokenAddress']),
             HexBytes(decoded['args']['salePrice']),
-            HexBytes(0), 
+            0, 
             HexBytes(0),
-            self.side(topic), 
+            self.get_side(topic), 
             self.ethNode.getTimestamp(decoded['transactionHash']),
             MarketType.MAGICEDEN
         ) 
-
-# 0xffb29e9cf48456d56b6d414855b66a7ec060ce2054dcb124a1876310e1b7355c

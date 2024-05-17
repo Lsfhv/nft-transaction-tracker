@@ -9,6 +9,9 @@ from src.constants import (
     blur_taker_topic,
     blur_maker_topic,
     infura_ws_endpoint,
+    MAGICEDEN_BUY_LISTING_ERC721_TOPIC, 
+    MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC, 
+    MAGICEDEN_CONTRACT_ADDRESS, 
     MarketType
 )
 
@@ -33,8 +36,23 @@ async def connect_to_endpoint(market_places: dict[MarketType, Marketplace]):
     await ws.send(create_eth_log_subscription_request(blur_contract_address, blur_taker_topic, blur_taker_topic))
     await ws.send(create_eth_log_subscription_request(blur_contract_address, blur_maker_topic, blur_maker_topic))
 
+    await ws.send(create_eth_log_subscription_request(
+        MAGICEDEN_CONTRACT_ADDRESS, 
+        MAGICEDEN_BUY_LISTING_ERC721_TOPIC,
+        MAGICEDEN_BUY_LISTING_ERC721_TOPIC
+    ))
+
+    await ws.send(create_eth_log_subscription_request(
+        MAGICEDEN_CONTRACT_ADDRESS, 
+        MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC,
+        MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC
+    ))
+
     sub_map[blur_taker_topic] = market_places[MarketType.BLUR.value]
     sub_map[blur_maker_topic] = market_places[MarketType.BLUR.value]
+
+    sub_map[MAGICEDEN_BUY_LISTING_ERC721_TOPIC] = market_places[MarketType.MAGICEDEN.value]
+    sub_map[MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC] = market_places[MarketType.MAGICEDEN.value]
 
     while True:
         response = json.loads(await ws.recv())

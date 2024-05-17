@@ -7,6 +7,7 @@ from hexbytes import HexBytes
 import queue
 import logging
 from src.constants import Side
+from web3.datastructures import AttributeDict
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,7 @@ class Marketplace(ABC):
     def get_src_dst(self, tx_hash: str, trader: HexBytes, tokenId: HexBytes, side: Side) -> dict:
         src, dest = 1, 2
 
-        if side == Side.TAKER:
+        if side == Side.SELL:
             src, dest = dest, src
 
         tx_logs = self.tx_logs(tx_hash)
@@ -79,13 +80,18 @@ class Marketplace(ABC):
         
         x = self.pad_add_to_eth_add_len(self.rhb(tx_logs[0][dest]))
 
-        if side == Side.TAKER:
+        if side == Side.SELL:
             trader, x = x, trader   
 
         return {
             "src": trader,
             "dst": x
         }
+    
+    def transform_msg(self, message: dict) -> AttributeDict:
+        message['topics'] = [HexBytes(i) for i in message['topics']]
+        result = AttributeDict(message)
+        return result
 
     def db_insert(self, trade: Trade) -> None:
         self.client.trades.insert_one(trade.get_trade_for_db())
@@ -110,7 +116,10 @@ class Marketplace(ABC):
                 trade = self.decode(message)
             except Exception as e:                
                 logger.error(f"Error decoding message: {e}")
+                logging.error(f"Message: {message}")
                 continue
+
+            logger.info(f"Decoded message: {trade}")
 
             try:
                 self.db_insert(trade)

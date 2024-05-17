@@ -1,5 +1,5 @@
 import asyncio
-from src.trade import Trade, TradeType
+from src.trade import Trade
 from src.constants import MarketType, Side
 from src.eth_node import EthNode
 from hexbytes import HexBytes
@@ -35,7 +35,7 @@ class Blur(Marketplace):
                     price,
                     feeAdd,
                     fee,
-                    Side.MAKER if side == HexBytes(0) else Side.TAKER]
+                    Side.BUY if side == HexBytes(0) else Side.SELL]
 
         txHash = message['transactionHash']
         trader, tokenId, colAdd, price, feeAdd, fee, side = splitData(message['data'])

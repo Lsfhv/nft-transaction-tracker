@@ -6,13 +6,6 @@ from src.constants import MarketType, Side
 import json
 import ast
 
-class TradeType(Enum):
-    # Someone bought a listed item
-    MAKER = "MAKER" 
-
-    # Someone sold into a bid
-    TAKER = "TAKER" 
-
 class Trade:
     def __init__(
         self,
@@ -28,6 +21,17 @@ class Trade:
         timestamp: datetime, 
         market: MarketType):
 
+        if not isinstance(txHash, str):
+            raise TypeError("txHash must be a string")
+        
+        if not (isinstance(feeRate, float) or isinstance(feeRate, int)):
+            raise TypeError("feeRate must be a float or int")
+        
+        if not (feeRate >= 0 and feeRate <= 1):
+            raise ValueError("feeRate must be between 0 and 1")
+        
+        
+
         self.txHash = txHash
         self.source = source
         self.destination = destination
@@ -39,6 +43,7 @@ class Trade:
         self.side = side
         self.timestamp = timestamp
         self.market = market
+
 
     # Returns a dictionary representation of the trade for db
     def get_trade_for_db(self) -> dict:
