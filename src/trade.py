@@ -2,7 +2,7 @@ from enum import Enum
 from hexbytes import HexBytes   
 from datetime import datetime
 from bson.decimal128 import Decimal128
-from src.constants import MarketType, Side
+from src.constants import MarketType, SIDE
 import json
 import ast
 
@@ -17,7 +17,7 @@ class Trade:
         price: HexBytes, 
         feeRate, 
         feeAddress: HexBytes, 
-        side: Side, 
+        side: SIDE, 
         timestamp: datetime, 
         market: MarketType):
 

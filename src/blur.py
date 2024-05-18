@@ -1,6 +1,6 @@
 import asyncio
 from src.trade import Trade
-from src.constants import MarketType, Side
+from src.constants import MarketType, SIDE
 from src.eth_node import EthNode
 from hexbytes import HexBytes
 from pymongo import MongoClient
@@ -35,7 +35,7 @@ class Blur(Marketplace):
                     price,
                     feeAdd,
                     fee,
-                    Side.BUY if side == HexBytes(0) else Side.SELL]
+                    SIDE.BUY if side == HexBytes(0) else SIDE.SELL]
 
         txHash = message['transactionHash']
         trader, tokenId, colAdd, price, feeAdd, fee, side = splitData(message['data'])

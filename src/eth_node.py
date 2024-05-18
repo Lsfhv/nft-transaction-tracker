@@ -5,7 +5,7 @@ from datetime import datetime
 from hexbytes import HexBytes
 import json 
 import logging 
-from src.constants import blur_contract_address
+from src.constants import BLUR_CONTRACT_ADDRESS
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +46,12 @@ class EthNode:
                 submap = {}
 
                 makersub = await w3.eth.subscribe("logs", {
-                    "address": blur_contract_address,
+                    "address": BLUR_CONTRACT_ADDRESS,
                     "topics": [self.makerT]
                     }) 
                 
                 takersub = await w3.eth.subscribe("logs", {
-                    "address": blur_contract_address,
+                    "address": BLUR_CONTRACT_ADDRESS,
                     "topics": [self.takerT]
                     }) 
                 
