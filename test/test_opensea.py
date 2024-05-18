@@ -1,14 +1,4 @@
 import unittest 
-from os import environ 
-import asyncio
-from src.eth_node import EthNode
-from src.opensea import Opensea
-from hexbytes import HexBytes
-
-from src.constants import (
-    SIDE, 
-    MarketType, 
-)
 
 from test_data import (
     TEST_OPENSEA, OPENSEA_SELL_MSG, OPENSEA_SELL_TRADE, 

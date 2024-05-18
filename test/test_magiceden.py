@@ -20,3 +20,4 @@ class TestMagicEden(unittest.TestCase):
         trade = TEST_MAGICEDEN.decode(MAGICEDEN_SELL_MSG)
         self.assertEqual(trade, MAGICEDEN_SELL_TRADE)
     
+

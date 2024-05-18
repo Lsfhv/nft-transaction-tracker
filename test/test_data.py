@@ -6,6 +6,7 @@ from src.magiceden import MagicEden
 from src.opensea import Opensea
 from asyncio import Queue
 from src.eth_node import EthNode
+from src.blur import Blur
 
 ETH_NODE = EthNode(INFURA_KEY)  
 
@@ -77,7 +78,7 @@ MAGICEDEN_SELL_TRADE = Trade(
     MarketType.MAGICEDEN
 )
 
-
+TEST_BLUR = Blur(Queue(), ETH_NODE, None)
 BLUR_MAKER_MSG = {'address': '0xb2ecfe4e4d61f8790bbb9de2d1259b9e2410cea5', 'blockHash': '0x137c3588e2d240cb255a0e83e3fff87a6ee50e939b553395055968ab01502c5c', 'blockNumber': '0x12f61a0', 'data': '0x28cfe965d7c7d8be78f88ea85bffe214611fe7d35b4d9ae1a52177a3512eb4db00000000000000000f429d00d2e80d60aff5377587e49ff32c9bad639d6f68bc000000000453068c90030000f9e39ce3463b8def5748ff9b8f7825af8f1b1617000000000000000000000032bb70ccc326bb0c98487cc4e281a4d7b9e1624baa', 'logIndex': '0x172', 'removed': False, 'topics': ['0x7dc5c0699ac8dd5250cbe368a2fc3b4a2daadb120ad07f6cccea29f83482686e'], 'transactionHash': '0x8cf2b6d5adb5d11fb6a9b773d524b6a40ac27d69d03dffbeba17c21b48da2466', 'transactionIndex': '0x86'}
 BLUR_MAKER_TRADE = Trade(
             '0x8cf2b6d5adb5d11fb6a9b773d524b6a40ac27d69d03dffbeba17c21b48da2466',
