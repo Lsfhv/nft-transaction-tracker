@@ -6,7 +6,7 @@ from pymongo import MongoClient
 import json
 from hexbytes import HexBytes
 from src.constants import (
-    Side, 
+    SIDE, 
     MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC, 
     MAGICEDEN_BUY_LISTING_ERC721_TOPIC,
     MarketType
@@ -27,10 +27,8 @@ class MagicEden(Marketplace):
             MAGICEDEN_BUY_LISTING_ERC721_TOPIC: self.contract.events.BuyListingERC721()
         }
 
-    def get_side(self, topic: str) -> Side:
-        return Side.SELL if topic == MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC else Side.BUY
-
     def decode(self, message: dict) -> Trade:
+        # TODO: add a way to get the fee paid, current just set to 0
         message = self.transform_msg(message)
         topic = message['topics'][0].hex()
         event = self.getEvent[topic]
@@ -45,7 +43,7 @@ class MagicEden(Marketplace):
             HexBytes(decoded['args']['salePrice']),
             0, 
             HexBytes(0),
-            self.get_side(topic), 
+            SIDE.SELL if topic == MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC else SIDE.BUY, 
             self.ethNode.getTimestamp(decoded['transactionHash']),
             MarketType.MAGICEDEN
         ) 

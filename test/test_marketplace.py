@@ -9,7 +9,7 @@ from src.blur import Blur
 import pymongo
 import logging
 from test_data import BLUR_MAKER_MSG, SLEEP, TX_HASH, ADD_LEN, TX_HASH_W_LOTS_LOGS
-from src.constants import Side
+from src.constants import SIDE
 
 
 class TestMarketplace(unittest.TestCase):
@@ -28,12 +28,12 @@ class TestMarketplace(unittest.TestCase):
         self.src_dst_input_1 = {
             'trader': HexBytes('0xd0bc13738D982F06399844480990a5Cf59B51867'), 
             'token_id': HexBytes(4097), 
-            'side': Side.SELL
+            'side': SIDE.SELL
         }
 
         self.src_dst_input_2 = {
             'trader': HexBytes('0x3c671b2949201ef605ecdc647339ccE9Df962F69'),
-            'side': Side.SELL
+            'side': SIDE.SELL
         }
 
 

@@ -6,7 +6,7 @@ from pymongo import MongoClient
 from hexbytes import HexBytes
 import queue
 import logging
-from src.constants import Side
+from src.constants import SIDE
 from web3.datastructures import AttributeDict
 
 logger = logging.getLogger(__name__)
@@ -67,10 +67,10 @@ class Marketplace(ABC):
 
         return HexBytes('0x' + '0' * (42 - len(address.hex())) + address.hex()[2:])
 
-    def get_src_dst(self, tx_hash: str, trader: HexBytes, tokenId: HexBytes, side: Side) -> dict:
+    def get_src_dst(self, tx_hash: str, trader: HexBytes, tokenId: HexBytes, side: SIDE) -> dict:
         src, dest = 1, 2
 
-        if side == Side.SELL:
+        if side == SIDE.SELL:
             src, dest = dest, src
 
         tx_logs = self.tx_logs(tx_hash)
@@ -80,7 +80,7 @@ class Marketplace(ABC):
         
         x = self.pad_add_to_eth_add_len(self.rhb(tx_logs[0][dest]))
 
-        if side == Side.SELL:
+        if side == SIDE.SELL:
             trader, x = x, trader   
 
         return {
@@ -89,9 +89,16 @@ class Marketplace(ABC):
         }
     
     def transform_msg(self, message: dict) -> AttributeDict:
+        """Transform msg so it works with the web3 decode function
+
+        Args:
+            message (dict): msg from infura node
+
+        Returns:
+            AttributeDict: transformed msg
+        """
         message['topics'] = [HexBytes(i) for i in message['topics']]
-        result = AttributeDict(message)
-        return result
+        return AttributeDict(message)
 
     def db_insert(self, trade: Trade) -> None:
         self.client.trades.insert_one(trade.get_trade_for_db())
@@ -118,8 +125,6 @@ class Marketplace(ABC):
                 logger.error(f"Error decoding message: {e}")
                 logging.error(f"Message: {message}")
                 continue
-
-            logger.info(f"Decoded message: {trade}")
 
             try:
                 self.db_insert(trade)

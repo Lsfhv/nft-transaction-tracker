@@ -2,7 +2,7 @@ from enum import Enum
 from hexbytes import HexBytes   
 from datetime import datetime
 from bson.decimal128 import Decimal128
-from src.constants import MarketType, Side
+from src.constants import MarketType, SIDE, TOKEN_TYPE
 import json
 import ast
 
@@ -17,9 +17,10 @@ class Trade:
         price: HexBytes, 
         feeRate, 
         feeAddress: HexBytes, 
-        side: Side, 
+        side: SIDE, 
         timestamp: datetime, 
-        market: MarketType):
+        market: MarketType,
+        token_type = TOKEN_TYPE.ERC721):
 
         if not isinstance(txHash, str):
             raise TypeError("txHash must be a string")
@@ -64,7 +65,7 @@ class Trade:
                self.feeAddress == other.feeAddress and \
                self.side == other.side and \
                self.timestamp == other.timestamp and \
-               self.market == other.market
+               self.market == other.market    
     
     def __str__(self):
         return json.dumps({
