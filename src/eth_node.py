@@ -25,6 +25,7 @@ class EthNode:
 
     # get timestamp of tx in unix time
     def getTimestamp(self, txHash: str | HexBytes) -> datetime:
+        print(txHash)
         block = self.w3.eth.get_transaction(txHash)['blockNumber']
         unixTime =  self.w3.eth.get_block(block)['timestamp']
         return datetime.utcfromtimestamp(unixTime)
