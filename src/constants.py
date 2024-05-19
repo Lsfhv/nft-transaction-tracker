@@ -18,6 +18,8 @@ MAGICEDEN_CONTRACT_ADDRESS = '0x9A1D00bEd7CD04BCDA516d721A596eb22Aac6834'
 MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC = '0x8b87c0b049fe52718fe6ff466b514c5a93c405fb0de8fbd761a23483f9f9e198'
 MAGICEDEN_BUY_LISTING_ERC721_TOPIC = '0xffb29e9cf48456d56b6d414855b66a7ec060ce2054dcb124a1876310e1b7355c'
 
+LOG_FILENAME = 'myapp.log'
+
 class MarketType(Enum):
     OPENSEA = "OPENSEA"
     BLUR = "BLUR"
@@ -26,3 +28,11 @@ class MarketType(Enum):
 class SIDE(Enum):
     BUY = 0 # Someone bought a listing
     SELL = 1 # Someone accepted a bid
+
+class TOKEN_TYPE(Enum):
+    ERC721 = 0
+    ERC1155 = 1
+    WETH = 2
+    BETH = 3
+    ETH = 4
+    UNKNOWN = 5

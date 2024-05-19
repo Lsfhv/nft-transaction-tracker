@@ -6,15 +6,16 @@ from src.eth_node import EthNode
 from src.magiceden import MagicEden
 from pymongo import MongoClient
 import logging
-from src.constants import MarketType
+from src.constants import MarketType, LOG_FILENAME
 from src.websocket_client import connect_to_endpoint
-from hexbytes import HexBytes   
+from hexbytes import HexBytes
 from web3.datastructures import AttributeDict
+from logging.handlers import RotatingFileHandler
 
 logger = logging.getLogger(__name__)
 
-async def start_marketplaces(eth_node: EthNode, db_client: MongoClient):
 
+async def start_marketplaces(eth_node: EthNode, db_client: MongoClient):
     blur = Blur(asyncio.Queue(), eth_node, db_client)
     magicEden = MagicEden(asyncio.Queue(), eth_node, db_client)
     os = Opensea(asyncio.Queue(), eth_node, db_client)
@@ -26,32 +27,26 @@ async def start_marketplaces(eth_node: EthNode, db_client: MongoClient):
     return blur, magicEden, os
 
 
+def setup_logger():
+    log_handler = RotatingFileHandler(LOG_FILENAME, maxBytes=10 * 1024 * 1024, backupCount=10)
+    logging.basicConfig(handlers=[log_handler], level=logging.INFO)
+
+
 async def main():
-    logging.basicConfig(filename='myapp.log', level=logging.INFO)
+    setup_logger()
 
-    logger.info('Started')
+    infura_key = environ['INFURAAPIKEY']
 
-    infuraKey = environ['INFURAAPIKEY']
-
-    ethNode = EthNode(infuraKey)
+    eth_node = EthNode(infura_key)
     # client = MongoClient('192.168.0.6', 27017).nft 
     client = MongoClient('localhost', 27017).nft
 
-    # os = Opensea(asyncio.Queue(), ethNode, client)
-    # blur = Blur(asyncio.Queue(), ethNode, client)
-    # magicEden = MagicEden(asyncio.Queue(), ethNode, client)
- 
-    # asyncio.create_task(os.start())
-    # asyncio.create_task(blur.start())
-    # asyncio.create_task(magicEden.start())
-
-    blur, magicEden, os = await start_marketplaces(ethNode, client)
-
+    blur, magic_eden, os = await start_marketplaces(eth_node, client)
 
     await asyncio.sleep(1)
 
-    await connect_to_endpoint({MarketType.BLUR.value: blur, 
-                               MarketType.MAGICEDEN.value: magicEden,
+    await connect_to_endpoint({MarketType.BLUR.value: blur,
+                               MarketType.MAGICEDEN.value: magic_eden,
                                MarketType.OPENSEA.value: os})
 
 

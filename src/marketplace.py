@@ -126,8 +126,6 @@ class Marketplace(ABC):
                 logging.error(f"Message: {message}")
                 continue
 
-            logger.info(f"Decoded message: {trade}")
-
             try:
                 self.db_insert(trade)
 
