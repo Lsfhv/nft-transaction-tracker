@@ -6,7 +6,7 @@ from src.eth_node import EthNode
 from src.magiceden import MagicEden
 from pymongo import MongoClient
 import logging
-from src.constants import MarketType, LOG_FILENAME, MONGODB_IP, MONGODB_PORT
+from src.constants import MarketType, LOG_FILENAME, MONGODB_IP, MONGODB_PORT, INFURA_KEY
 from src.websocket_client import connect_to_endpoint
 from hexbytes import HexBytes
 from web3.datastructures import AttributeDict
@@ -34,17 +34,10 @@ def setup_logger():
 
 async def main():
     setup_logger()
-
-    infura_key = environ['INFURAAPIKEY']
-
-    eth_node = EthNode(infura_key)
-
+    eth_node = EthNode(INFURA_KEY)
     client = MongoClient(MONGODB_IP, MONGODB_PORT).nft
-
     blur, magic_eden, os = await start_marketplaces(eth_node, client)
-
     await asyncio.sleep(1)
-
     await connect_to_endpoint({MarketType.BLUR.value: blur,
                                MarketType.MAGICEDEN.value: magic_eden,
                                MarketType.OPENSEA.value: os})
