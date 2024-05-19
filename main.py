@@ -6,7 +6,7 @@ from src.eth_node import EthNode
 from src.magiceden import MagicEden
 from pymongo import MongoClient
 import logging
-from src.constants import MarketType, LOG_FILENAME
+from src.constants import MarketType, LOG_FILENAME, MONGODB_IP, MONGODB_PORT
 from src.websocket_client import connect_to_endpoint
 from hexbytes import HexBytes
 from web3.datastructures import AttributeDict
@@ -38,8 +38,8 @@ async def main():
     infura_key = environ['INFURAAPIKEY']
 
     eth_node = EthNode(infura_key)
-    # client = MongoClient('192.168.0.6', 27017).nft 
-    client = MongoClient('localhost', 27017).nft
+
+    client = MongoClient(MONGODB_IP, MONGODB_PORT).nft
 
     blur, magic_eden, os = await start_marketplaces(eth_node, client)
 

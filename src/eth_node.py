@@ -33,10 +33,6 @@ class EthNode:
     def getLogs(self, txHash: str | HexBytes) -> list:
         return self.w3.eth.get_transaction_receipt(txHash)['logs']
     
-    # def decodeOSlog(self, log: dict) -> dict:
-    #     data = self.contract.events.OrderFulfilled().process_log(log)['args']
-    #     return {k: v for k,v in data.items()}
-    
     async def w2Logs(self, marketplaces, key: str):
         try:
             async with AsyncWeb3.persistent_websocket(
