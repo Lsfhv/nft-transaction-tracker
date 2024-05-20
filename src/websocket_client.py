@@ -12,9 +12,9 @@ from src.constants import (
     MAGICEDEN_BUY_LISTING_ERC721_TOPIC, 
     MAGICEDEN_ACCEPT_OFFER_ERC721_TOPIC, 
     MAGICEDEN_CONTRACT_ADDRESS, 
-    MarketType,
     OPENSEA_1_6_CONTRACT_ADDRESS,   
     OPENSEA_ORDER_FULFILLED_TOPIC,
+    MarketType
 )
 
 logger = logging.getLogger(__name__)    
