@@ -29,11 +29,8 @@ def create_eth_log_subscription_request(address: str, topic: str, id) -> str:
     })
 
 
-async def connect_to_endpoint(market_places: dict[MarketType, Marketplace]):
-    logger.info('Connecting to websocket endpoint')
+async def send_subscription_msgs():
     ws = await websockets.connect(INFURA_WS_ENDPOINT, ping_interval=None)
-
-    sub_map = {}
 
     await ws.send(create_eth_log_subscription_request(BLUR_CONTRACT_ADDRESS, BLUR_TAKER_TOPIC, BLUR_TAKER_TOPIC))
     await ws.send(create_eth_log_subscription_request(BLUR_CONTRACT_ADDRESS, BLUR_MAKER_TOPIC, BLUR_MAKER_TOPIC))
@@ -56,6 +53,15 @@ async def connect_to_endpoint(market_places: dict[MarketType, Marketplace]):
         OPENSEA_ORDER_FULFILLED_TOPIC
     ))
 
+    return ws
+
+async def connect_to_endpoint(market_places: dict[MarketType, Marketplace]):
+    logger.info('Connecting to websocket endpoint')
+    
+    ws = await send_subscription_msgs()
+
+    sub_map = {}
+
     sub_map[BLUR_TAKER_TOPIC] = market_places[MarketType.BLUR.value]
     sub_map[BLUR_MAKER_TOPIC] = market_places[MarketType.BLUR.value]
 
@@ -65,19 +71,24 @@ async def connect_to_endpoint(market_places: dict[MarketType, Marketplace]):
     sub_map[OPENSEA_ORDER_FULFILLED_TOPIC] = market_places[MarketType.OPENSEA.value]
 
     while True:
-        response = json.loads(await ws.recv())
+        try:
+            response = json.loads(await ws.recv())
 
-        if "result" in response:
+            if "result" in response:
 
-            marketplace = sub_map[response['id']]
-            sub_map[response['result']] = marketplace
+                marketplace = sub_map[response['id']]
+                sub_map[response['result']] = marketplace
 
-            logger.info(f"Subscribed to {marketplace.__class__.__name__}")
-        else:
+                logger.info(f"Subscribed to {marketplace.__class__.__name__}")
+            else:
+                
+                sub = response['params']['subscription']
+                msg = response['params']['result']
+
+                marketplace = sub_map[sub]
+                await marketplace.aq.put(msg)
+        except Exception as e:
+            logger.error(f"Error in websocket connection: {e}")
             
-            sub = response['params']['subscription']
-            msg = response['params']['result']
-
-            marketplace = sub_map[sub]
-            await marketplace.aq.put(msg)
+            ws = await send_subscription_msgs()
 

@@ -28,7 +28,7 @@ async def start_marketplaces(eth_node: EthNode, db_client: MongoClient):
 
 
 def setup_logger():
-    log_handler = RotatingFileHandler(LOG_FILENAME, maxBytes=10 * 1024 * 1024, backupCount=10)
+    log_handler = RotatingFileHandler(LOG_FILENAME, maxBytes=10 * 1024 * 1024, backupCount=20)
     formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     log_handler.setFormatter(formatter)
     logging.basicConfig(handlers=[log_handler], level=logging.INFO)
